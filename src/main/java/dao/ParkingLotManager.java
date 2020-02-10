@@ -1,26 +1,22 @@
 package dao;
 
-import entities.Car;
-import entities.Slot;
 import exception.DataLayerException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.PriorityQueue;
+import java.util.List;
 
 public interface ParkingLotManager {
 
-    void createParkingLot(int slots) throws DataLayerException;
+    boolean createParkingLot(int slots) throws DataLayerException;
 
-    void park(String regNumber, String colour) throws DataLayerException;
+    String park(String regNumber, String colour) throws DataLayerException;
 
-    void leave(int slotId) throws DataLayerException;
+    boolean leave(int slotId) throws DataLayerException;
 
-    void status() throws DataLayerException;
+    List<String> status() throws DataLayerException;
 
-    void registrationNumbersForCarsWithColour(String colour) throws DataLayerException;
+    List<String> registrationNumbersForCarsWithColour(String colour) throws DataLayerException;
 
-    void slotNumbersForCarsWithColour(String colour) throws DataLayerException;
+    List<Integer> slotNumbersForCarsWithColour(String colour) throws DataLayerException;
 
-    void slotNumberForRegistrationNumber(String regNumber) throws DataLayerException;
+    Integer slotNumberForRegistrationNumber(String regNumber) throws DataLayerException;
 }

@@ -5,8 +5,8 @@ import entities.Car;
 import entities.Slot;
 import exception.DataLayerException;
 
-import javax.xml.crypto.Data;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ParkingLotManagerImpl implements ParkingLotManager {
     private Queue<Integer> freeSlots = new PriorityQueue<>();
@@ -15,7 +15,7 @@ public class ParkingLotManagerImpl implements ParkingLotManager {
     private Map<Integer, Slot> slotIdToSlotMapping = new HashMap<>();
     private boolean isParkingLotCreated = false;
 
-    public void createParkingLot(int slots) throws DataLayerException {
+    public boolean createParkingLot(int slots) throws DataLayerException {
         if (isParkingLotCreated == true) {
             throw new DataLayerException("ParkingLot Already created");
         }
@@ -28,21 +28,20 @@ public class ParkingLotManagerImpl implements ParkingLotManager {
                 freeSlots.add(i);
                 slotIdToSlotMapping.put(i, new Slot(i, false, null));
             }
-            System.out.println("Created a parking lot with " + slots + " slots");
             isParkingLotCreated = true;
+            return true;
         } catch (Exception e) {
             throw new DataLayerException(e);
         }
     }
 
-    public void park(String regNumber, String colour) throws DataLayerException {
+    public String park(String regNumber, String colour) throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
         try {
             if (freeSlots.isEmpty()) {
-                System.out.println("Sorry, parking lot is full");
-                return;
+                return "Sorry, parking lot is full";
             }
             int slotId = freeSlots.poll();
             slotIdToSlotMapping.get(slotId).setCarDetails(new Car(regNumber, colour));
@@ -56,20 +55,22 @@ public class ParkingLotManagerImpl implements ParkingLotManager {
                 return v;
             });
             regNumberToSlotIdMapping.put(regNumber, slotId);
-
-            System.out.println("Allocated slot number: " + slotId);
+            return "Allocated slot number: " + slotId;
         } catch (Exception e) {
             throw new DataLayerException(e);
         }
     }
 
 
-    public void leave(int slotId) throws DataLayerException {
+    public boolean leave(int slotId) throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
         if (freeSlots.contains(slotId)) {
             throw new DataLayerException("No vehicle is allotted to slot no. " + slotId);
+        }
+        if (slotId > slotIdToSlotMapping.size() || slotId <= 0) {
+            throw new DataLayerException("Invalid slotId");
         }
         try {
             Slot slot = slotIdToSlotMapping.get(slotId);
@@ -77,75 +78,59 @@ public class ParkingLotManagerImpl implements ParkingLotManager {
             regNumberToSlotIdMapping.remove(slot.getCarDetails().getRegistrationNumber());
             colourToSlotIdMapping.get(slot.getCarDetails().getColour()).remove(slotId);
             freeSlots.add(slotId);
-            System.out.println("Slot number " + slotId + " is free");
+            return true;
         } catch (Exception e) {
             throw new DataLayerException(e);
         }
     }
 
-    public void status() throws DataLayerException {
+    public List<String> status() throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
-        System.out.println("Slot No.  Registration No  Colour");
-        for (Slot slot : slotIdToSlotMapping.values()) {
-            if (slot.isOccupied()) {
-                System.out.println(slot.getId() + "  " + slot.getCarDetails().getRegistrationNumber() + "  " + slot.getCarDetails().getColour());
-            }
-        }
+        return slotIdToSlotMapping.values().stream().filter(t -> t.isOccupied()).map(t ->
+                t.getId() + "\t" + t.getCarDetails().getRegistrationNumber() + "\t" +  t.getCarDetails().getColour()).collect(Collectors.toList());
     }
 
-    public void registrationNumbersForCarsWithColour(String colour) throws DataLayerException {
+    public List<String> registrationNumbersForCarsWithColour(String colour) throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
         try {
             if (colourToSlotIdMapping.containsKey(colour)) {
-                int count = 0;
-                for (int slotId : colourToSlotIdMapping.get(colour)) {
-                    if (count > 0) {
-                        System.out.print(", ");
-                    }
-                    count++;
-                    System.out.print(slotIdToSlotMapping.get(slotId).getCarDetails().getRegistrationNumber());
-                }
-                System.out.println();
+                return colourToSlotIdMapping.get(colour).stream().map(t -> slotIdToSlotMapping.get(t).getCarDetails().getRegistrationNumber()).collect(Collectors.toList());
+            } else {
+                return Collections.EMPTY_LIST;
             }
         } catch (Exception e) {
             throw new DataLayerException(e);
         }
     }
 
-    public void slotNumbersForCarsWithColour(String colour) throws DataLayerException {
+    public List<Integer> slotNumbersForCarsWithColour(String colour) throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
         try {
             if (colourToSlotIdMapping.containsKey(colour)) {
-                int count = 0;
-                for (int slotId : colourToSlotIdMapping.get(colour)) {
-                    if (count > 0) {
-                        System.out.print(", ");
-                    }
-                    count++;
-                    System.out.print(slotId);
-                }
-                System.out.println();
+                return colourToSlotIdMapping.get(colour).stream().collect(Collectors.toList());
+            } else {
+                return Collections.EMPTY_LIST;
             }
         } catch (Exception e) {
             throw new DataLayerException(e);
         }
     }
 
-    public void slotNumberForRegistrationNumber(String regNumber) throws DataLayerException {
+    public Integer slotNumberForRegistrationNumber(String regNumber) throws DataLayerException {
         if (!isParkingLotCreated) {
             throw new DataLayerException("ParkingLot not created yet");
         }
         try {
             if (regNumberToSlotIdMapping.containsKey(regNumber)) {
-                System.out.println(regNumberToSlotIdMapping.get(regNumber));
+                return regNumberToSlotIdMapping.get(regNumber);
             } else {
-                System.out.println("Not found");
+                return 0;
             }
         } catch (Exception e) {
             throw new DataLayerException(e);
