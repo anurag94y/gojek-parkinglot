@@ -1,17 +1,19 @@
 package service;
 
+import exception.ServiceLayerException;
+
 public interface ParkingLotService {
-    void createParkingLot(String input);
+    void createParkingLot(String input) throws ServiceLayerException;
 
-    void park(String input);
+    void park(String input) throws ServiceLayerException;
 
-    void leave(String input);
+    void leave(String input) throws ServiceLayerException;
 
-    void status();
+    void status() throws ServiceLayerException;
 
-    void registrationNumbersForCarsWithColour(String input);
+    void registrationNumbersForCarsWithColour(String input) throws ServiceLayerException;
 
-    void slotNumbersForCarsWithColour(String input);
+    void slotNumbersForCarsWithColour(String input) throws ServiceLayerException;
 
-    void slotNumberForRegistrationNumber(String input);
+    void slotNumberForRegistrationNumber(String input) throws ServiceLayerException;
 }
