@@ -5,7 +5,6 @@ dir=target
 ##jar file name
 jar_name=ParkingLot-1.0-SNAPSHOT.jar
 
-cd ..
 mvn clean install
 
 if [ -z "$1" ] ; then
